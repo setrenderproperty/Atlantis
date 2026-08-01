@@ -1937,7 +1937,28 @@
 		function library:esp_preview(properties)
 			local cfg = {items = {}, rotation = 0; objects = {};}
 
-		lp.Character.Archivable = true
+			-- safe flag color read (the library is shared, so callers may not define every flag)
+			local function get_flag_color(name, fallback)
+				local value = flags[name]
+
+				if type(value) == "table" and value.Color then
+					return value.Color
+				end
+
+				return fallback
+			end
+
+			-- covers R15 and R6 rigs
+			local skeleton_bones = {
+				{"Head", "UpperTorso"}, {"UpperTorso", "LowerTorso"},
+				{"UpperTorso", "LeftUpperArm"}, {"LeftUpperArm", "LeftLowerArm"}, {"LeftLowerArm", "LeftHand"},
+				{"UpperTorso", "RightUpperArm"}, {"RightUpperArm", "RightLowerArm"}, {"RightLowerArm", "RightHand"},
+				{"LowerTorso", "LeftUpperLeg"}, {"LeftUpperLeg", "LeftLowerLeg"}, {"LeftLowerLeg", "LeftFoot"},
+				{"LowerTorso", "RightUpperLeg"}, {"RightUpperLeg", "RightLowerLeg"}, {"RightLowerLeg", "RightFoot"},
+				{"Head", "Torso"}, {"Torso", "Left Arm"}, {"Torso", "Right Arm"}, {"Torso", "Left Leg"}, {"Torso", "Right Leg"},
+			}
+
+			lp.Character.Archivable = true
 		local character = lp.Character:Clone()
 		local animate = character:FindFirstChild("Animate")
 		if animate then
@@ -1993,6 +2014,17 @@
 				objects[ "box_outline" ] = library:create( "UIStroke" , {
 					Parent = library.cache;
 					LineJoinMode = Enum.LineJoinMode.Miter
+				});
+				
+				objects[ "fill" ] = library:create( "Frame" , {
+					Parent = library.cache;
+					Name = "\0";
+					BackgroundTransparency = 0.75;
+					Position = dim2(0, 0, 0, 0);
+					Size = dim2(1, 0, 1, 0);
+					BackgroundColor3 = flags["Box_Color"].Color;
+					BorderSizePixel = 0;
+					ZIndex = 1;
 				});
 				
 				objects[ "name" ] = library:create( "TextLabel" , {
@@ -2277,7 +2309,81 @@
 						AutomaticSize = Enum.AutomaticSize.Y;
 						TextSize = 12;
 					});
-				--  
+				-- 
+
+				-- Head dot
+					objects[ "head_dot" ] = library:create( "Frame" , {
+						AnchorPoint = vec2(0.5, 1);
+						Parent = library.cache;
+						Name = "\0";
+						Position = dim2(0.5, 0, 0, -24);
+						Size = dim2(0, 6, 0, 6);
+						BackgroundColor3 = get_flag_color("head_dot_innocent_color", rgb(255, 255, 255));
+						BorderSizePixel = 0;
+					});
+				-- 
+
+				-- Chams (Highlight on the cloned character, works inside viewport frames)
+					local highlight = Instance.new("Highlight")
+					highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+					highlight.FillTransparency = 0.5
+					highlight.OutlineTransparency = 0
+					highlight.Adornee = character
+					highlight.Parent = character
+					objects[ "highlight" ] = highlight
+				-- 
+				-- Skeleton (bone lines projected through the viewport camera)
+					objects[ "skeleton" ] = {}
+
+					for i, pair in ipairs(skeleton_bones) do
+						objects[ "skeleton" ][i] = library:create( "Frame" , {
+							AnchorPoint = vec2(0.5, 0.5);
+							Parent = items.viewportframe;
+							Name = "\0";
+							Visible = false;
+							Size = dim2(0, 1, 0, 2);
+							BackgroundColor3 = rgb(255, 255, 255);
+							BorderSizePixel = 0;
+						})
+					end
+
+					local function update_skeleton()
+						local show = flags["Enabled"] and flags["Skeleton"]
+						local color = get_flag_color("skeleton_innocent_color", rgb(255, 255, 255))
+
+						for i, pair in ipairs(skeleton_bones) do
+							local bone = objects[ "skeleton" ][i]
+							local a = show and character:FindFirstChild(pair[1])
+							local b = a and character:FindFirstChild(pair[2])
+
+							if a and b then
+								local pa = items.camera:WorldToViewportPoint(a.Position)
+								local pb = items.camera:WorldToViewportPoint(b.Position)
+								local dx, dy = pb.X - pa.X, pb.Y - pa.Y
+								local len = math.sqrt(dx * dx + dy * dy)
+
+								if len > 0.5 then
+									bone.Visible = true
+									bone.Position = UDim2.fromOffset(pa.X + dx / 2, pa.Y + dy / 2)
+									bone.Size = UDim2.fromOffset(len, 2)
+									bone.Rotation = math.deg(math.atan2(dy, dx))
+									bone.BackgroundColor3 = color
+								else
+									bone.Visible = false
+								end
+							else
+								bone.Visible = false
+							end
+						end
+					end
+
+					task.spawn(function()
+						while true do
+							task.wait()
+							update_skeleton()
+						end
+					end)
+				-- 
 			end 
 
 			cfg.change_health = function()
@@ -2304,6 +2410,7 @@
 					["Healthbar"] = objects[ "healthbar_holder" ];
 					["Distance"] = objects[ "distance" ];
 					["Weapon"] = objects[ "weapon" ];
+					["Head_Dot"] = objects[ "head_dot" ];
 					["Distance_Color"] = {objects[ "distance" ]};
 					["Weapon_Color"] = {objects[ "weapon" ]};
 				}
@@ -2334,7 +2441,22 @@
 					objects[ "box_outline" ].Parent = library.cache
 				end 
 
+				objects[ "fill" ].Parent = (flags["Boxes"] and flags["Box_Fill"]) and objects[ "holder" ] or library.cache
+				objects[ "fill" ].BackgroundColor3 = flags["Box_Color"].Color
+
+				objects[ "head_dot" ].BackgroundColor3 = get_flag_color("head_dot_innocent_color", rgb(255, 255, 255))
+
 				objects[ "box_color" ].Color = flags["Box_Color"].Color 
+
+				-- chams
+				if flags["Enabled"] and flags["Chams"] then
+					local color = get_flag_color("chams_innocent_color", get_flag_color("murderer_color", rgb(255, 255, 255)))
+					objects[ "highlight" ].Parent = character
+					objects[ "highlight" ].FillColor = color
+					objects[ "highlight" ].OutlineColor = color
+				else
+					objects[ "highlight" ].Parent = nil
+				end
 
 				for _, corner in objects[ "corners" ]:GetChildren() do
 					corner.Frame.BackgroundColor3 = flags["Box_Color"].Color
