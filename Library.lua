@@ -1,6 +1,7 @@
 -- REASON: Dumbass customer put their library in a request and flexed his non existant security and ended up getting it leaked by himself... 😭
 -- The code here is horrendous this is my 2nd library, the added on code was made to suit the old code however I should have just converted to a newer version of my code kind of an oopsie. 
--- Forked by DC:@setrenderproperty
+
+--// Some fixes for ESP Preview
 
 -- variables
 	local uis = cloneref(game:GetService("UserInputService"))
@@ -223,7 +224,7 @@
 		makefolder(library.directory .. path)
 	end 
 
-	writefile("ffff.ttf", game:HttpGet("https://github.com/setrenderproperty/Atlantis/raw/refs/heads/main/fs%20Tahoma%208px.ttf"))
+	writefile("ffff.ttf", game:HttpGet("https://github.com/weasely111/beta/raw/refs/heads/main/fs-tahoma-8px.ttf"))
 
 	local tahoma = {
 		name = "SmallestPixel7",
@@ -1936,9 +1937,12 @@
 		function library:esp_preview(properties)
 			local cfg = {items = {}, rotation = 0; objects = {};}
 
-			lp.Character.Archivable = true
-			local character = lp.Character:Clone()
-			character.Animate:Destroy()
+		lp.Character.Archivable = true
+		local character = lp.Character:Clone()
+		local animate = character:FindFirstChild("Animate")
+		if animate then
+			animate:Destroy()
+		end
 
 			local items = cfg.items; do 
 				items.viewportframe = library:create( "ViewportFrame" , {
