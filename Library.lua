@@ -224,7 +224,7 @@
 		makefolder(library.directory .. path)
 	end 
 
-	writefile("ffff.ttf", game:HttpGet("https://github.com/weasely111/beta/raw/refs/heads/main/fs-tahoma-8px.ttf"))
+	writefile("ffff.ttf", game:HttpGet("https://github.com/setrenderproperty/Atlantis/raw/refs/heads/main/fs%20Tahoma%208px.ttf"))
 
 	local tahoma = {
 		name = "SmallestPixel7",
