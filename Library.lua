@@ -1989,12 +1989,16 @@
 				items.viewportframe.CurrentCamera = items.camera -- sick
 				character.Parent = items.viewportframe
 
+				character.PrimaryPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso") or character:FindFirstChildWhichIsA("BasePart")
+
 				items.camera.CameraSubject = character
 
 				library:connection(run.RenderStepped, function()
 					task.wait()
 					cfg.rotation += 0.5
-					character:SetPrimaryPartCFrame(cfr(Vector3.new(0, 1, -6)) * angle(0, math.rad(cfg.rotation), 0))
+					if character.PrimaryPart then
+						character:SetPrimaryPartCFrame(cfr(Vector3.new(0, 1, -6)) * angle(0, math.rad(cfg.rotation), 0))
+					end
 				end)
 			end 
 
@@ -2318,7 +2322,7 @@
 						Name = "\0";
 						Position = dim2(0.5, 0, 0, -24);
 						Size = dim2(0, 6, 0, 6);
-						BackgroundColor3 = get_flag_color("head_dot_innocent_color", rgb(255, 255, 255));
+						BackgroundColor3 = get_flag_color("Head_Dot_Color", rgb(255, 255, 255));
 						BorderSizePixel = 0;
 					});
 				-- 
@@ -2349,7 +2353,7 @@
 
 					local function update_skeleton()
 						local show = flags["Enabled"] and flags["Skeleton"]
-						local color = get_flag_color("skeleton_innocent_color", rgb(255, 255, 255))
+						local color = get_flag_color("Skeleton_Color", rgb(255, 255, 255))
 
 						for i, pair in ipairs(skeleton_bones) do
 							local bone = objects[ "skeleton" ][i]
@@ -2444,13 +2448,13 @@
 				objects[ "fill" ].Parent = (flags["Boxes"] and flags["Box_Fill"]) and objects[ "holder" ] or library.cache
 				objects[ "fill" ].BackgroundColor3 = flags["Box_Color"].Color
 
-				objects[ "head_dot" ].BackgroundColor3 = get_flag_color("head_dot_innocent_color", rgb(255, 255, 255))
+				objects[ "head_dot" ].BackgroundColor3 = get_flag_color("Head_Dot_Color", rgb(255, 255, 255))
 
 				objects[ "box_color" ].Color = flags["Box_Color"].Color 
 
 				-- chams
 				if flags["Enabled"] and flags["Chams"] then
-					local color = get_flag_color("chams_innocent_color", get_flag_color("murderer_color", rgb(255, 255, 255)))
+					local color = get_flag_color("Chams_Color", rgb(255, 255, 255))
 					objects[ "highlight" ].Parent = character
 					objects[ "highlight" ].FillColor = color
 					objects[ "highlight" ].OutlineColor = color
