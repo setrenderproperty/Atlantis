@@ -1,5 +1,6 @@
 -- REASON: Dumbass customer put their library in a request and flexed his non existant security and ended up getting it leaked by himself... 😭
 -- The code here is horrendous this is my 2nd library, the added on code was made to suit the old code however I should have just converted to a newer version of my code kind of an oopsie. 
+-- Forked by DC:@setrenderproperty
 
 -- variables
 	local uis = cloneref(game:GetService("UserInputService"))
@@ -222,7 +223,7 @@
 		makefolder(library.directory .. path)
 	end 
 
-	writefile("ffff.ttf", game:HttpGet("https://github.com/weasely111/beta/raw/refs/heads/main/fs-tahoma-8px.ttf"))
+	writefile("ffff.ttf", game:HttpGet("https://github.com/setrenderproperty/Atlantis/raw/refs/heads/main/fs%20Tahoma%208px.ttf"))
 
 	local tahoma = {
 		name = "SmallestPixel7",
